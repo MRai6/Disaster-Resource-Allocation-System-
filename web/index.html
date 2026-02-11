@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Disaster Resource Allocation</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Optional: Chart.js for bar chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="dashboard">
+      <header class="header">
+        <h1>Disaster Resource Allocation</h1>
+      </header>
+
+      <main class="main">
+
+        <!-- Left: Input panel -->
+        <section class="panel">
+          <h2>Simulation Inputs</h2>
+
+          <div class="card">
+            <h3>Camp & Zones</h3>
+            <label>
+              Total supply at camp (units):
+              <input type="number" id="totalSupply" min="0" value="80">
+            </label>
+            <p class="hint">Main camp is assumed to be node 0.</p>
+          </div>
+
+          <div class="card">
+            <h3>Scenario Preset</h3>
+            <label>
+              Choose scenario:
+              <select id="presetSelect">
+                <option value="custom">Custom</option>
+                <option value="earthquake">Earthquake</option>
+                <option value="flood">Flood</option>
+                <option value="cyclone">Cyclone</option>
+              </select>
+            </label>
+            <p class="hint">Presets pre-fill zones with typical demand and urgency patterns.</p>
+          </div>
+
+          <div class="card">
+            <h3>Affected Zones</h3>
+            <div id="zonesContainer"></div>
+            <button id="addZoneBtn" type="button">+ Add Zone</button>
+          </div>
+
+          <div class="card">
+            <h3>Road Network (Conceptual)</h3>
+            <p class="hint">
+              Backend models roads as a weighted graph and can run Dijkstra to compute
+              travel times from the camp. The dashboard focuses on allocation behaviour.
+            </p>
+            <canvas id="roadCanvas" width="360" height="160"></canvas>
+          </div>
+
+          <div class="card">
+            <h3>Strategy</h3>
+            <label>
+              Allocation strategy:
+              <select id="strategySelect">
+                <option value="urgency">Greedy by urgency</option>
+                <option value="demand">Greedy by demand</option>
+                <option value="roundrobin">Round-robin</option>
+              </select>
+            </label>
+          </div>
+
+          <button id="runBtn" class="primary-btn" type="button">Run Allocation</button>
+        </section>
+
+        <!-- Right: Output panel -->
+        <section class="panel">
+          <h2>Results</h2>
+
+          <div class="card">
+            <h3>Allocation Plan</h3>
+            <table id="resultsTable">
+              <thead>
+                <tr>
+                  <th>Zone ID</th>
+                  <th>Demand</th>
+                  <th>Urgency</th>
+                  <th>Sent</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Filled by JS -->
+              </tbody>
+            </table>
+            <p id="remainingSupplyText"></p>
+            <p id="metricsBox"></p>
+          </div>
+
+          <div class="card">
+            <h3>Allocation Chart</h3>
+            <p class="hint">Bar chart comparing demand vs sent units for each zone.</p>
+            <canvas id="allocationChart" height="120"></canvas>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
