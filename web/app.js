@@ -15,11 +15,11 @@ function createZoneRow(idValue = "", demandValue = "", urgencyValue = "") {
     </label>
     <label>
       Demand
-      <input type="number" class="zone-demand" value="${demandValue}" min="0" max="100">
+      <input type="number" class="zone-demand" value="${demandValue}" min="0" max="300">
     </label>
     <label>
       Urgency
-      <input type="number" class="zone-urgency" value="${urgencyValue}" min="0" max="100">
+      <input type="number" class="zone-urgency" value="${urgencyValue}" min="0" max="300">
     </label>
     <label>
       Distance from Camp
@@ -194,7 +194,7 @@ function renderMetrics(results, remaining, totalSupply) {
   `;
 }
 
-// -------- Chart (1 resource) --------
+// -------- Chart --------
 
 let allocationChartInstance = null;
 
@@ -332,7 +332,7 @@ function setup() {
   });
 
   runBtn.addEventListener("click", () => {
-    const MAX_SUPPLY = 100;
+    const MAX_SUPPLY = 300;
     const totalSupply = Number(totalSupplyInput.value);
     if (!Number.isFinite(totalSupply) || totalSupply < 0 || totalSupply > MAX_SUPPLY) {
       alert("Total supply must be between 0 and " + MAX_SUPPLY + ".");
@@ -346,12 +346,12 @@ function setup() {
     }
 
     for (const z of zones) {
-      if (z.urgency < 0 || z.urgency > 100) {
-        alert(`Urgency for zone ${z.id} must be between 0 and 100.`);
+      if (z.urgency < 0 || z.urgency > 300) {
+        alert(`Urgency for zone ${z.id} must be between 0 and 300.`);
         return;
       }
-      if (z.demand < 0 || z.demand > 100) {
-        alert(`Demand for zone ${z.id} must be between 0 and 100.`);
+      if (z.demand < 0 || z.demand > 300) {
+        alert(`Demand for zone ${z.id} must be between 0 and 300.`);
         return;
       }
     }

@@ -3,7 +3,7 @@
 #include "graph.h"
 #include "allocation.h"
 
-#define MAX_SUPPLY 100
+#define MAX_SUPPLY 300
 #define MAX_ZONES  50
 
 // ----------------------- Graph Input -----------------------
@@ -93,8 +93,8 @@ static void read_zones_from_user(Zone** out_zones,
             exit(EXIT_FAILURE);
         }
 
-        printf("  Enter urgency (higher = more critical, 1-100): ");
-        if (scanf("%d", &urgency) != 1 || urgency < 0 || urgency > 100) {
+        printf("  Enter urgency (higher = more critical, 1-300): ");
+        if (scanf("%d", &urgency) != 1 || urgency < 0 || urgency > 300) {
             fprintf(stderr, "Invalid urgency.\n");
             free(zones);
             exit(EXIT_FAILURE);
