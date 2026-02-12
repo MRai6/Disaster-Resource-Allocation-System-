@@ -1,10 +1,10 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
-// Edge in adjacency list: directed edge u -> to with given weight
+// Edge in adjacency list
 typedef struct Edge {
     int to;              // destination node index
-    int weight;          // cost (time / distance, non-negative)
+    int weight;          // (distance, non-negative)
     struct Edge* next;   // next edge in adjacency list
 } Edge;
 
@@ -23,12 +23,9 @@ void add_edge(Graph* g, int u, int v, int w);
 // Free all memory used by the graph (all edges + adj array)
 void free_graph(Graph* g);
 
-// Debug helper: print adjacency lists for all nodes
+
 void print_graph(const Graph* g);
 
-// Single-source shortest paths using Dijkstra (adjacency list + min-heap).
-// Fills dist[0..num_nodes-1] with minimum distance from 'source' to each node.
-// Assumes all edge weights are non-negative.
 void dijkstra(const Graph* g, int source, int dist[]);
 
 #endif

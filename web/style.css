@@ -28,20 +28,20 @@ body{
 
 .main{
     display: grid;
-    grid-template-columns: 1.1fr 1.2fr;
-    gap: 16px;
+    grid-template-columns: 1.1fr 1.3fr; /* give right panel a bit more */
+    gap: 20px;
 }
 
 .panel{
     background: #020617;
     border-radius: 8px;
-    padding: 16px;
+    padding: 18px;
     border: 1px solid #1f2937;
 }
 
 .panel h2{
     font-size: 1.1rem;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
 
 .card{
@@ -49,7 +49,7 @@ body{
     border-radius: 8px;
     border: 1px solid #1f2937;
     padding: 12px;
-    margin-bottom: 12px;
+    margin-bottom: 14px; /* a bit more gap between cards */
 }
 
 .card h3{
@@ -60,7 +60,7 @@ body{
 label{
     display: block;
     font-size: 0.9rem;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 
 input[type="number"],
@@ -103,7 +103,7 @@ button:hover {
 
 .primary-btn {
     width: 100%;
-    margin-top: 8px;
+    margin-top: 10px;
     background: #2563eb;
     border-color: #2563eb;
 }
@@ -112,11 +112,12 @@ button:hover {
     background: #1d4ed8;
 }
 
+/* five fields + button, more horizontal space per field */
 #zonesContainer .zone-row {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
-    gap: 8px;
-    margin-bottom: 8px;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) auto;
+    gap: 10px;
+    margin-bottom: 10px;
     align-items: center;
 }
 
@@ -161,7 +162,7 @@ tbody tr:nth-child(even) {
     font-size: 0.9rem;
 }
 
-/* NEW: urgency-based row colors */
+/* urgency-based row colors */
 .row-critical {
     background: rgba(220, 38, 38, 0.18);
 }
@@ -186,7 +187,6 @@ tbody tr:nth-child(even) {
     margin-top: 8px;
 }
 
-
 #roadCanvas{
     width: 100%;
     max-width: 100%;
@@ -194,4 +194,5 @@ tbody tr:nth-child(even) {
     border-radius: 4px;
     border: 1px solid #1f2937;
     background: #020617;
-    margin-top: 8px;}
+    margin-top: 8px;
+}

@@ -6,9 +6,9 @@
 // Zone data: multi-resource demands + urgency
 typedef struct {
     int id;            // zone (node) id
-    int demand_food;   // food units required
-    int demand_water;  // water units required
-    int urgency;       // higher = more critical (e.g. 1–100)
+    int demand_food;   
+    int demand_water;  
+    int urgency;       
 } Zone;
 
 // Greedy allocation based on urgency only (2 resources: food & water)

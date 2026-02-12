@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Disaster Resource Allocation – Two Resources</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Optional: Chart.js for bar chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="dashboard">
+      <header class="header">
+        <h1>Disaster Resource Allocation (Food & Water)</h1>
+      </header>
+
+      <main class="main">
+
+        <!-- Left: Input panel -->
+        <section class="panel">
+          <h2>Simulation Inputs</h2>
+
+          <div class="card">
+            <h3>Camp & Zones</h3>
+            <label>
+              Total FOOD at camp (units):
+              <input type="number" id="totalFood" min="0" value="80">
+            </label>
+            <label>
+              Total WATER at camp (units):
+              <input type="number" id="totalWater" min="0" value="80">
+            </label>
+            <p class="hint">Main camp is assumed to be node 0.</p>
+          </div>
+
+          <div class="card">
+            <h3>Scenario Preset</h3>
+            <label>
+              Choose scenario:
+              <select id="presetSelect">
+                <option value="custom">Custom</option>
+                <option value="earthquake">Earthquake</option>
+                <option value="flood">Flood</option>
+                <option value="cyclone">Cyclone</option>
+              </select>
+            </label>
+            <p class="hint">Presets pre-fill zones with typical demand and urgency patterns.</p>
+          </div>
+
+          <div class="card">
+            <h3>Affected Zones</h3>
+            <div id="zonesContainer"></div>
+            <button id="addZoneBtn" type="button">+ Add Zone</button>
+          </div>
+
+          <div class="card">
+            <h3>Road Network</h3>
+            <p class="hint">
+              Backend models roads as a weighted graph and can run Dijkstra to compute
+              travel times from the camp. The dashboard focuses on allocation behaviour.
+            </p>
+            <canvas id="roadCanvas" width="360" height="160"></canvas>
+          </div>
+
+          <button id="runBtn" class="primary-btn" type="button">Run Allocation (Urgency-based)</button>
+        </section>
+
+        <!-- Right: Output panel -->
+        <section class="panel">
+          <h2>Results</h2>
+
+          <div class="card">
+            <h3>Allocation Plan (Food & Water)</h3>
+            <table id="resultsTable">
+              <thead>
+                <tr>
+                  <th>Zone ID</th>
+                  <th>Food demand</th>
+                  <th>Water demand</th>
+                  <th>Urgency</th>
+                  <th>Food sent</th>
+                  <th>Water sent</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Filled by JS -->
+              </tbody>
+            </table>
+            <p id="remainingSupplyText"></p>
+            <p id="metricsBox"></p>
+          </div>
+
+          <div class="card">
+            <h3>Allocation Chart</h3>
+            <p class="hint">Bar chart comparing food and water demand vs sent units for each zone.</p>
+            <canvas id="allocationChart" height="120"></canvas>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- Use the two-resource JS file for this page -->
+    <script src="app_two_resources.js"></script>
+  </body>
+</html>

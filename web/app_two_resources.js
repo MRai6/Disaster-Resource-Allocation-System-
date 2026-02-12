@@ -1,10 +1,11 @@
-// app.js
+// app_two_resources.js
 
-// Zone shape: { id, demand, urgency, distance }
+// Zone object shape:
+// { id: number, foodDemand: number, waterDemand: number, urgency: number, distance: number }
 
 // -------- Zone row creation & reading --------
 
-function createZoneRow(idValue = "", demandValue = "", urgencyValue = "") {
+function createZoneRow(idValue = "", foodValue = "", waterValue = "", urgencyValue = "") {
   const row = document.createElement("div");
   row.className = "zone-row";
 
@@ -14,8 +15,12 @@ function createZoneRow(idValue = "", demandValue = "", urgencyValue = "") {
       <input type="number" class="zone-id" value="${idValue}">
     </label>
     <label>
-      Demand
-      <input type="number" class="zone-demand" value="${demandValue}" min="0" max="100">
+      Food demand
+      <input type="number" class="zone-food" value="${foodValue}" min="0" max="100">
+    </label>
+    <label>
+      Water demand
+      <input type="number" class="zone-water" value="${waterValue}" min="0" max="100">
     </label>
     <label>
       Urgency
@@ -41,18 +46,21 @@ function getZonesFromUI() {
 
   rows.forEach((row, index) => {
     const idInput = row.querySelector(".zone-id");
-    const demandInput = row.querySelector(".zone-demand");
+    const foodInput = row.querySelector(".zone-food");
+    const waterInput = row.querySelector(".zone-water");
     const urgencyInput = row.querySelector(".zone-urgency");
     const distInput = row.querySelector(".zone-distance");
 
     const id = Number(idInput.value);
-    const demand = Number(demandInput.value);
+    const foodDemand = Number(foodInput.value);
+    const waterDemand = Number(waterInput.value);
     const urgency = Number(urgencyInput.value);
     const distance = distInput ? Number(distInput.value) : 0;
 
     if (
       !Number.isFinite(id) ||
-      !Number.isFinite(demand) ||
+      !Number.isFinite(foodDemand) ||
+      !Number.isFinite(waterDemand) ||
       !Number.isFinite(urgency) ||
       !Number.isFinite(distance)
     ) {
@@ -60,84 +68,46 @@ function getZonesFromUI() {
       return;
     }
 
-    zones.push({ id, demand, urgency, distance });
+    zones.push({ id, foodDemand, waterDemand, urgency, distance });
   });
 
   return zones;
 }
 
-// -------- Allocation strategies (1 resource) --------
+// -------- Allocation: urgency-based, two resources --------
 
-function allocateGreedyByUrgency(zones, totalSupply) {
+function allocateUrgencyTwoResources(zones, totalFood, totalWater) {
   const zonesCopy = zones.map(z => ({ ...z }));
   zonesCopy.sort((a, b) => b.urgency - a.urgency);
 
-  let remaining = totalSupply;
+  let remainingFood = totalFood;
+  let remainingWater = totalWater;
   const results = [];
 
   for (const z of zonesCopy) {
-    if (remaining <= 0) {
-      results.push({ ...z, sent: 0 });
-      continue;
-    }
-    const sent = Math.min(z.demand, remaining);
-    remaining -= sent;
-    results.push({ ...z, sent });
+    const foodSent = Math.min(z.foodDemand, remainingFood);
+    const waterSent = Math.min(z.waterDemand, remainingWater);
+
+    remainingFood -= foodSent;
+    remainingWater -= waterSent;
+
+    results.push({
+      id: z.id,
+      foodDemand: z.foodDemand,
+      waterDemand: z.waterDemand,
+      urgency: z.urgency,
+      distance: z.distance,
+      foodSent,
+      waterSent
+    });
   }
 
-  return { results, remaining };
-}
-
-function allocateGreedyByDemand(zones, totalSupply) {
-  const zonesCopy = zones.map(z => ({ ...z }));
-  zonesCopy.sort((a, b) => b.demand - a.demand);
-
-  let remaining = totalSupply;
-  const results = [];
-
-  for (const z of zonesCopy) {
-    const sent = remaining > 0 ? Math.min(z.demand, remaining) : 0;
-    remaining -= sent;
-    results.push({ ...z, sent });
-  }
-
-  return { results, remaining };
-}
-
-function allocateRoundRobin(zones, totalSupply) {
-  const zonesCopy = zones.map(z => ({ ...z, remainingDemand: z.demand }));
-  const resultsMap = new Map();
-  zonesCopy.forEach(z => resultsMap.set(z.id, 0));
-
-  let remaining = totalSupply;
-  let index = 0;
-
-  while (remaining > 0 && zonesCopy.some(z => z.remainingDemand > 0)) {
-    const z = zonesCopy[index];
-
-    if (z.remainingDemand > 0) {
-      z.remainingDemand--;
-      remaining--;
-      resultsMap.set(z.id, resultsMap.get(z.id) + 1);
-    }
-
-    index = (index + 1) % zonesCopy.length;
-  }
-
-  const results = zones.map(z => ({
-    id: z.id,
-    demand: z.demand,
-    urgency: z.urgency,
-    distance: z.distance,
-    sent: resultsMap.get(z.id) || 0
-  }));
-
-  return { results, remaining };
+  return { results, remainingFood, remainingWater };
 }
 
 // -------- Rendering & metrics --------
 
-function renderResults(results, remaining) {
+function renderResults(results, remainingFood, remainingWater) {
   const tbody = document.querySelector("#resultsTable tbody");
   tbody.innerHTML = "";
 
@@ -145,9 +115,11 @@ function renderResults(results, remaining) {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${r.id}</td>
-      <td>${r.demand}</td>
+      <td>${r.foodDemand}</td>
+      <td>${r.waterDemand}</td>
       <td>${r.urgency}</td>
-      <td>${r.sent}</td>
+      <td>${r.foodSent}</td>
+      <td>${r.waterSent}</td>
     `;
 
     if (r.urgency >= 80) tr.classList.add("row-critical");
@@ -158,43 +130,59 @@ function renderResults(results, remaining) {
   });
 
   const remainingText = document.getElementById("remainingSupplyText");
-  remainingText.textContent = `Remaining supply at camp: ${remaining}`;
+  remainingText.textContent =
+    `Remaining at camp – Food: ${remainingFood}, Water: ${remainingWater}`;
 }
 
-function computeMetrics(results, totalSupply) {
-  let fully = 0, partial = 0, none = 0;
-  let totalDemand = 0, totalSent = 0;
+function computeMetrics(results) {
+  let fullyFood = 0, partialFood = 0, noneFood = 0;
+  let fullyWater = 0, partialWater = 0, noneWater = 0;
+  let totalFoodDemand = 0, totalWaterDemand = 0;
+  let totalFoodSent = 0, totalWaterSent = 0;
 
   results.forEach(r => {
-    totalDemand += r.demand;
-    totalSent += r.sent;
-    if (r.sent === 0) none++;
-    else if (r.sent === r.demand) fully++;
-    else partial++;
+    totalFoodDemand += r.foodDemand;
+    totalWaterDemand += r.waterDemand;
+    totalFoodSent += r.foodSent;
+    totalWaterSent += r.waterSent;
+
+    if (r.foodSent === 0) noneFood++;
+    else if (r.foodSent === r.foodDemand) fullyFood++;
+    else partialFood++;
+
+    if (r.waterSent === 0) noneWater++;
+    else if (r.waterSent === r.waterDemand) fullyWater++;
+    else partialWater++;
   });
 
-  const coverage = totalDemand > 0 ? (totalSent / totalDemand) * 100 : 0;
-  return { fully, partial, none, totalDemand, totalSent, coverage, totalSupply };
+  const foodCoverage = totalFoodDemand > 0 ? (totalFoodSent / totalFoodDemand) * 100 : 0;
+  const waterCoverage = totalWaterDemand > 0 ? (totalWaterSent / totalWaterDemand) * 100 : 0;
+
+  return {
+    fullyFood, partialFood, noneFood,
+    fullyWater, partialWater, noneWater,
+    totalFoodDemand, totalWaterDemand,
+    totalFoodSent, totalWaterSent,
+    foodCoverage, waterCoverage
+  };
 }
 
-function renderMetrics(results, remaining, totalSupply) {
+function renderMetrics(results) {
   const metricsBox = document.getElementById("metricsBox");
   if (!metricsBox) return;
 
-  const totalSent = results.reduce((s, r) => s + r.sent, 0);
-  const m = computeMetrics(results, totalSupply);
+  const m = computeMetrics(results);
 
   metricsBox.innerHTML = `
     Zones: ${results.length} |
-    Fully served: ${m.fully} |
-    Partially served: ${m.partial} |
-    Not served: ${m.none} |
-    Demand met: ${m.totalSent}/${m.totalDemand} (${m.coverage.toFixed(1)}%) |
-    Supply used: ${totalSent}/${totalSupply}
+    Food – Fully: ${m.fullyFood}, Partial: ${m.partialFood}, None: ${m.noneFood},
+    Coverage: ${m.totalFoodSent}/${m.totalFoodDemand} (${m.foodCoverage.toFixed(1)}%) |
+    Water – Fully: ${m.fullyWater}, Partial: ${m.partialWater}, None: ${m.noneWater},
+    Coverage: ${m.totalWaterSent}/${m.totalWaterDemand} (${m.waterCoverage.toFixed(1)}%)
   `;
 }
 
-// -------- Chart (1 resource) --------
+// -------- Chart (two resources) --------
 
 let allocationChartInstance = null;
 
@@ -204,8 +192,10 @@ function renderChart(results) {
 
   const ctx = canvas.getContext("2d");
   const labels = results.map(r => `Zone ${r.id}`);
-  const demandData = results.map(r => r.demand);
-  const sentData = results.map(r => r.sent);
+  const foodDemandData = results.map(r => r.foodDemand);
+  const waterDemandData = results.map(r => r.waterDemand);
+  const foodSentData = results.map(r => r.foodSent);
+  const waterSentData = results.map(r => r.waterSent);
 
   if (allocationChartInstance) {
     allocationChartInstance.destroy();
@@ -217,14 +207,24 @@ function renderChart(results) {
       labels,
       datasets: [
         {
-          label: "Demand",
-          data: demandData,
+          label: "Food demand",
+          data: foodDemandData,
           backgroundColor: "rgba(59, 130, 246, 0.6)"
         },
         {
-          label: "Sent",
-          data: sentData,
-          backgroundColor: "rgba(16, 185, 129, 0.7)"
+          label: "Food sent",
+          data: foodSentData,
+          backgroundColor: "rgba(37, 99, 235, 0.8)"
+        },
+        {
+          label: "Water demand",
+          data: waterDemandData,
+          backgroundColor: "rgba(16, 185, 129, 0.5)"
+        },
+        {
+          label: "Water sent",
+          data: waterSentData,
+          backgroundColor: "rgba(5, 150, 105, 0.8)"
         }
       ]
     },
@@ -316,14 +316,14 @@ function setup() {
   const zonesContainer = document.getElementById("zonesContainer");
   const addZoneBtn = document.getElementById("addZoneBtn");
   const runBtn = document.getElementById("runBtn");
-  const strategySelect = document.getElementById("strategySelect");
-  const totalSupplyInput = document.getElementById("totalSupply");
+  const totalFoodInput = document.getElementById("totalFood");
+  const totalWaterInput = document.getElementById("totalWater");
 
   drawRoadNetwork([]);
 
-  zonesContainer.appendChild(createZoneRow(1, 40, 90));
-  zonesContainer.appendChild(createZoneRow(2, 30, 60));
-  zonesContainer.appendChild(createZoneRow(3, 50, 80));
+  zonesContainer.appendChild(createZoneRow(1, 40, 20, 90));
+  zonesContainer.appendChild(createZoneRow(2, 30, 30, 60));
+  zonesContainer.appendChild(createZoneRow(3, 50, 10, 80));
 
   addZoneBtn.addEventListener("click", () => {
     zonesContainer.appendChild(createZoneRow());
@@ -333,9 +333,14 @@ function setup() {
 
   runBtn.addEventListener("click", () => {
     const MAX_SUPPLY = 100;
-    const totalSupply = Number(totalSupplyInput.value);
-    if (!Number.isFinite(totalSupply) || totalSupply < 0 || totalSupply > MAX_SUPPLY) {
-      alert("Total supply must be between 0 and " + MAX_SUPPLY + ".");
+    const totalFood = Number(totalFoodInput.value);
+    const totalWater = Number(totalWaterInput.value);
+
+    if (
+      !Number.isFinite(totalFood) || totalFood < 0 || totalFood > MAX_SUPPLY ||
+      !Number.isFinite(totalWater) || totalWater < 0 || totalWater > MAX_SUPPLY
+    ) {
+      alert("Food and water supply must be between 0 and " + MAX_SUPPLY + ".");
       return;
     }
 
@@ -345,33 +350,29 @@ function setup() {
       return;
     }
 
+    // validate urgency, food, water in 0–100
     for (const z of zones) {
       if (z.urgency < 0 || z.urgency > 100) {
         alert(`Urgency for zone ${z.id} must be between 0 and 100.`);
         return;
       }
-      if (z.demand < 0 || z.demand > 100) {
-        alert(`Demand for zone ${z.id} must be between 0 and 100.`);
+      if (z.foodDemand < 0 || z.foodDemand > 100) {
+        alert(`Food demand for zone ${z.id} must be between 0 and 100.`);
+        return;
+      }
+      if (z.waterDemand < 0 || z.waterDemand > 100) {
+        alert(`Water demand for zone ${z.id} must be between 0 and 100.`);
         return;
       }
     }
 
     drawRoadNetwork(zones);
 
-    const strategy = strategySelect.value;
-    let allocation;
-    if (strategy === "demand") {
-      allocation = allocateGreedyByDemand(zones, totalSupply);
-    } else if (strategy === "roundrobin") {
-      allocation = allocateRoundRobin(zones, totalSupply);
-    } else {
-      allocation = allocateGreedyByUrgency(zones, totalSupply);
-    }
+    const { results, remainingFood, remainingWater } =
+      allocateUrgencyTwoResources(zones, totalFood, totalWater);
 
-    const { results, remaining } = allocation;
-
-    renderResults(results, remaining);
-    renderMetrics(results, remaining, totalSupply);
+    renderResults(results, remainingFood, remainingWater);
+    renderMetrics(results);
     renderChart(results);
   });
 }
